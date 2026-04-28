@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>P.S. Manallasacc</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #FFF9C4;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 60px;
+            margin: 0;
+            padding-top: 10px; 
+        }
+
+        .contenedor {
+            width: 100%;
+        }
+
+        .fila {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 120px;
+            margin-top: 20px;
+        }
+
+        .columna {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+            gap: 25px;
+        }
+
+        .gif {
+            width: 280px;
+        }
+
+        .gif1 {
+            width: 350px; 
+        }
+
+        .logo {
+            width: 350px;
+        }
+
+        .boton {
+            font-size: 22px;
+            padding: 15px 35px;
+            border-radius: 10px;
+            border: none;
+            background-color: #2c7be5;
+            color: white;
+            cursor: pointer;
+        }
+
+        .boton:hover {
+            background-color: #1a5edb;
+        }
+
+        .menu {
+            display: none;
+            margin-top: 15px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+
+        .opcion {
+            width: 100%;
+            margin: 8px 0;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

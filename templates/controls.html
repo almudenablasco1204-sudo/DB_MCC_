@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.contenedor {
+    display: flex;
+    height: 100vh;
+}
+
+.izquierda {
+    flex: 1;
+}
+
+.izquierda img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.derecha {
+    flex: 2;
+    text-align: center;
+    padding-top: 20px;
+}
+
+.volver-top {
+    position: absolute;
+    top: 30px;
+    left: 580px;
+    font-size: 16px;
+    text-decoration: none;
+    background: #2c7be5;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+}
+
+.volver-top:hover {
+    background: #1a5edb;
+}
+
+h2 {
+    font-size: 32px;
+}
+
+.info {
+    font-size: 20px;
+    margin: 10px;
+}
+
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-size: 18px;
+    width: 95%;
+}
+
+th, td {
+    border: 1px solid #999;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #f2f2f2;
+}
+
+.icono a {
+    text-decoration: none;
+    font-size: 22px;
+}
+
+.completo { color: green; }
+.pendiente { color: red; }
+.bloqueado { color: gray; opacity: 0.5; }
+
+</style>
+
+<div class="contenedor">
+
+<div class="izquierda">
+    <img src="{{ url_for('static', filename=imagen) }}">
+    <a href="/" class="volver-top">⬅ Volver</a>
+</div>
+
+<div class="derecha">
+
+    <h2>Controles - {{ grupo }}</h2>
+
+    <!-- 🔥 CONTADOR -->
+    <div class="info">
+        Total: {{ total }} |
+        <span style="color:green;">✔ Completos: {{ completos }}</span> |
+        <span style="color:red;">✖ Incompletos: {{ total - completos }}</span>
+    </div>
+
+    <form method="post">
+        <label><input type="radio" name="tipo" value="apellido" required> Apellido</label>
+        <label><input type="radio" name="tipo" value="dni"> DNI</label>
+        <input name="valor" placeholder="Buscar">
+        <button>Buscar</button>
+    </form>
+
+    <hr>
+
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Edad</th>
+            <th>DNI</th>
+            <th>HC</th>
+
+            {% for c in headers %}
+                <th>{{ c }}</th>
+            {% endfor %}
+        </tr>
+
+        {% for p in pacientes %}
+        <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.edad }}</td>
+            <td>{{ p.dni }}</td>
+            <td>{{ p.hc }}</td>
+
+            {% for ctrl in p.controles %}
+            <td class="icono">
+                {% if ctrl.bloqueado %}
+                    <span class="bloqueado">🔒</span>
+                {% else %}
+                    <a href="/toggle/{{ p.id }}/{{ loop.index }}">
+                        {% if ctrl.done %}
+                            <span class="completo">✔</span>
+                            {% if ctrl.fecha %}
+                                <br><small>{{ ctrl.fecha }}</small>
+                            {% endif %}
+                        {% else %}
+                            <span class="pendiente">✖</span>
+                        {% endif %}
+                    </a>
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/">⬅ Volver</a>
+
+</div>
+</div>
+
+{% endblock %}

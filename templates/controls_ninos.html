@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.contenedor {
+    display:flex;
+    height:100vh;
+}
+
+/* IZQUIERDA (IMAGEN) */
+.izquierda {
+    flex:1;
+}
+
+.izquierda img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* DERECHA (CONTENIDO) */
+.derecha {
+    flex:2;
+    padding:20px;
+    text-align:center;
+}
+.volver-top {
+    position: absolute;
+    top: 30px;
+    left: 580px;
+    font-size: 16px;
+    text-decoration: none;
+    background: #2c7be5;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+}
+
+.volver-top:hover {
+    background: #1a5edb;
+}
+h2 {
+    font-size:32px;
+}
+
+/* BOTONES RANGO */
+.rangos {
+    margin:15px 0;
+}
+
+.rangos button {
+    margin:5px;
+    padding:12px 22px;
+    font-size:17px;
+    border:none;
+    border-radius:10px;
+    background:#2c7be5;
+    color:white;
+    cursor:pointer;
+    transition:all 0.2s ease;
+}
+
+/* HOVER */
+.rangos button:hover {
+    background:#1a5edb;
+    transform:scale(1.05);
+}
+
+/* 🔥 ACTIVO (MUCHO MÁS NOTORIO) */
+.rangos button.activo {
+    background:#ff9800;              /* naranja fuerte */
+    color:white;
+    font-weight:bold;
+    transform:scale(1.1);
+    box-shadow:0 0 15px rgba(255,152,0,0.8);
+    border:2px solid white;
+}
+
+/* INFO */
+.info {
+    font-size:18px;
+    margin:10px;
+}
+
+/* TABLA */
+table {
+    margin:20px auto;
+    border-collapse:collapse;
+    width:95%;
+    font-size:16px;
+}
+
+th, td {
+    border:1px solid #999;
+    padding:8px;
+    text-align:center;
+}
+
+th {
+    background:#f2f2f2;
+}
+
+/* ICONOS */
+.icono a {
+    text-decoration:none;
+    font-size:18px;
+}
+
+.completo { color:green; }
+.pendiente { color:red; }
+
+</style>
+
+<div class="contenedor">
+
+    <!-- IZQUIERDA -->
+    <div class="izquierda">
+        <img src="{{ url_for('static', filename='Niños.jpeg') }}">
+        <a href="/" class="volver-top">⬅ Volver</a>
+    </div>
+
+    <!-- DERECHA -->
+    <div class="derecha">
+
+        <h2>Controles - Niños</h2>
+
+        <!-- 🔥 SELECTOR DE RANGO CON ACTIVO -->
+        <form method="post" class="rangos">
+            <button name="rango" value="menor1"
+                class="{% if rango == 'menor1' %}activo{% endif %}">
+                Menor 1 año
+            </button>
+
+            <button name="rango" value="1anio"
+                class="{% if rango == '1anio' %}activo{% endif %}">
+                1 año
+            </button>
+
+            <button name="rango" value="2a4"
+                class="{% if rango == '2a4' %}activo{% endif %}">
+                2-4 años
+            </button>
+
+            <button name="rango" value="5a11"
+                class="{% if rango == '5a11' %}activo{% endif %}">
+                5-11 años
+            </button>
+        </form>
+
+        {% if rango %}
+
+        <!-- CONTADOR -->
+        <div class="info">
+            Total: {{ total }} |
+            ✔ {{ completos }} |
+            ✖ {{ total - completos }}
+        </div>
+
+        <!-- BUSCADOR -->
+        <form method="post">
+            <input type="hidden" name="rango" value="{{ rango }}">
+
+            <label>
+                <input type="radio" name="tipo" value="apellido" required>
+                Apellido
+            </label>
+
+            <label>
+                <input type="radio" name="tipo" value="dni">
+                DNI
+            </label>
+
+            <input name="valor" placeholder="Buscar">
+
+            <button>Buscar</button>
+        </form>
+
+        <!-- TABLA -->
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Edad</th>
+                <th>DNI</th>
+                <th>HC</th>
+
+                {% for c in headers %}
+                <th>{{ c }}</th>
+                {% endfor %}
+            </tr>
+
+            {% for p in pacientes %}
+            <tr>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.edad }}</td>
+                <td>{{ p.dni }}</td>
+                <td>{{ p.hc }}</td>
+
+                {% for ctrl in p.controles %}
+                <td class="icono">
+                    <a href="/toggle/{{ p.id }}/{{ loop.index }}">
+                        {% if ctrl.done %}
+                            <span class="completo">✔</span><br>
+                            <small>{{ ctrl.fecha }}</small>
+                        {% else %}
+                            <span class="pendiente">✖</span><br>
+                            <small style="color:gray;">{{ ctrl.esperada }}</small>
+                        {% endif %}
+                    </a>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

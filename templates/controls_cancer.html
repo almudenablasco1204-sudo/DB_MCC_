@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.contenedor {
+    display:flex;
+    height:100vh;
+}
+
+.izquierda {
+    flex:1;
+}
+
+.izquierda img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.derecha {
+    flex:2;
+    text-align:center;
+    padding:20px;
+}
+
+.volver-top {
+    position: absolute;
+    top: 30px;
+    left: 580px;
+    font-size: 16px;
+    text-decoration: none;
+    background: #2c7be5;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+}
+
+.volver-top:hover {
+    background: #1a5edb;
+}
+
+/* 🔥 BOTONES SUPERIORES (igual niños) */
+.selector {
+    margin-bottom:20px;
+}
+
+.selector button {
+    margin:5px;
+    padding:10px 18px;
+    font-size:25px;
+    border:none;
+    border-radius:8px;
+    background:#2c7be5;
+    color:white;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+/* 🔥 HIGHLIGHT */
+.selector button.active {
+    background:#ff9800;
+    transform:scale(1.05);
+    box-shadow:0px 0px 8px rgba(0,0,0,0.3);
+}
+
+/* TABLA */
+table {
+    margin:20px auto;
+    border-collapse:collapse;
+    width:95%;
+    font-size:16px;
+}
+h2 {
+    font-size:32px;
+}
+th, td {
+    border:1px solid #999;
+    padding:8px;
+    text-align:center;
+}
+
+th {
+    background:#f2f2f2;
+}
+</style>
+
+<div class="contenedor">
+
+<div class="izquierda">
+    <img src="{{ url_for('static', filename='cancer.jpeg') }}">
+    <a href="/" class="volver-top">⬅ Volver</a>
+
+</div>
+
+<div class="derecha">
+
+<h2>Prevención de Cáncer</h2>
+
+<!-- 🔥 SELECTOR SIEMPRE VISIBLE -->
+<div class="selector">
+
+    <form method="post">
+
+        <button name="modo" value="mama"
+        class="{% if modo=='mama' %}active{% endif %}">
+            Mama
+        </button>
+
+        <button name="modo" value="prostata"
+        class="{% if modo=='prostata' %}active{% endif %}">
+            Próstata
+        </button>
+
+        <button name="modo" value="colon"
+        class="{% if modo=='colon' %}active{% endif %}">
+            Colon
+        </button>
+
+        <button name="modo" value="piel"
+        class="{% if modo=='piel' %}active{% endif %}">
+            Piel
+        </button>
+
+    </form>
+
+</div>
+
+{% if modo %}
+
+<p>
+Total: {{ total }} |
+✔ {{ completos }} |
+✖ {{ total - completos }}
+</p>
+
+<form method="post">
+    <input type="hidden" name="modo" value="{{ modo }}">
+
+    <label><input type="radio" name="tipo" value="apellido"> Apellido</label>
+    <label><input type="radio" name="tipo" value="dni"> DNI</label>
+
+    <input name="valor" placeholder="Buscar">
+    <button>Buscar</button>
+</form>
+
+<table>
+
+<tr>
+<th>Nombre</th>
+<th>Edad</th>
+<th>DNI</th>
+<th>HC</th>
+<th>Control</th>
+</tr>
+
+{% for p in pacientes %}
+<tr>
+<td>{{ p.nombre }}</td>
+<td>{{ p.edad }}</td>
+<td>{{ p.dni }}</td>
+<td>{{ p.hc }}</td>
+
+<td>
+<a href="/toggle/{{ p.id }}/1">
+{% if p.controles[nombre].done %}
+✔ {{ p.controles[nombre].fecha }}
+{% else %}
+✖
+{% endif %}
+</a>
+</td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+{% endif %}
+
+</div>
+</div>
+
+{% endblock %}

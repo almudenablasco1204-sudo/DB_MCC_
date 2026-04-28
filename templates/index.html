@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .contenedor {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        position: relative;
+    }
+
+    /* TÍTULO */
+    .titulo {
+        text-align: center;
+        font-size: 40px;
+        font-weight: bold;
+        margin-top: 30px;
+        color: #1e2a3a;
+    }
+
+    /* BARRA BOTONES (RECTÁNGULO AZUL PASTEL) */
+    .barra-botones {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding: 15px;
+        margin: 5px;
+        border-radius: 12px;
+
+        /* azul pastel */
+        background: #cfe8ff;
+        border: 2px solid #7fb8ff;
+    }
+
+    .boton {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #1e6bd6;
+        color: white;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    .boton:hover {
+        background: #1553a6;
+    }
+
+    .banner-triptico {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* imagenes laterales */
+    .img-lado {
+        width: 28%;
+        height: 70vh;
+        object-fit: cover;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* imagen central */
+    .img-centro {
+        width: 44%;
+        height: 70vh;
+        object-fit: cover;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* elimina separación visual */
+    .banner-triptico img {
+        display: block;
+    }
+
+    /* FOOTER */
+    .footer {
+        position: absolute;
+        bottom: 10px;
+        left: 15px;
+        font-size: 12px;
+        color: #666;
+    }
+
+</style>
+
+<div class="contenedor">
+
+    <!-- TÍTULO -->
+    <div class="titulo">
+        P.S. Manallasacc
+    </div>
+
+    <!-- BARRA BOTONES -->
+    <div class="barra-botones">
+
+        <button class="boton" onclick="location.href='/register'">
+            📝 Registrar Paciente
+        </button>
+
+        <button class="boton" onclick="location.href='/patients'">
+            👀 Ver Base de Datos
+        </button>
+
+        <button class="boton" onclick="toggleControles()">
+            📊 Controles
+        </button>
+
+        <button class="boton" onclick="location.href='/search'">
+            🔎 Buscar Paciente
+        </button>
+
+    </div>
+
+    <!-- CONTROLES DESPLEGABLES -->
+    <div id="menuControles" class="barra-botones" style="display:none;">
+        <button class="boton" onclick="abrirGrupo('ninos')">Niños</button>
+        <button class="boton" onclick="abrirGrupo('adolescentes')">Adolescentes</button>
+        <button class="boton" onclick="abrirGrupo('jovenes')">Jóvenes</button>
+        <button class="boton" onclick="abrirGrupo('adultos')">Adultos</button>
+        <button class="boton" onclick="abrirGrupo('adultos_mayores')">Adultos Mayores</button>
+        <button class="boton" onclick="location.href='/controls/cancer'">Cáncer</button>
+    </div>
+
+    <div class="banner-triptico">
+
+        <img src="{{ url_for('static', filename='izquierda.jpeg') }}" class="img-lado">
+
+        <img src="{{ url_for('static', filename='index.jpeg') }}" class="img-centro">
+
+        <img src="{{ url_for('static', filename='derecha.jpeg') }}" class="img-lado">
+
+    </div>
+
+    <div class="footer">
+        © 2026 P.S. Manallasacc — Software de uso interno.  
+        Prohibida su copia, distribución o modificación sin autorización.  
+        Contacto: almudena.blasco1204@gmail.com
+    </div>
+
+</div>
+
+<script>
+function toggleControles() {
+    const menu = document.getElementById("menuControles");
+    menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    menu.style.flexWrap = "wrap";
+}
+
+function abrirGrupo(grupo) {
+    window.location.href = "/controls/" + grupo;
+}
+</script>
+
+{% endblock %}

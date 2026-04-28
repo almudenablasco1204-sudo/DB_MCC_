@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.contenedor {
+    display: flex;
+    height: 100vh;
+}
+
+.izquierda, .derecha {
+    flex: 1;
+}
+
+.izquierda img, .derecha img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.centro {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+form {
+    width: 80%;
+}
+
+input {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 100%;
+    font-size: 16px;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+}
+</style>
+
+<div class="contenedor">
+
+    <!-- IZQUIERDA -->
+    <div class="izquierda">
+        <img src="{{ url_for('static', filename='logo.jpeg') }}">
+    </div>
+
+    <!-- CENTRO -->
+    <div class="centro">
+
+        <h2>Editar Paciente</h2>
+
+        <form method="post">
+
+            <input name="hc" value="{{ p.hc }}">
+            <input name="community" value="{{ p.community }}">
+            <input name="dni" value="{{ p.dni }}">
+            <input name="last_name" value="{{ p.last_name }}">
+            <input name="mother_last_name" value="{{ p.mother_last_name }}">
+            <input name="first_name" value="{{ p.first_name }}">
+            <input type="date" name="birth_date"
+                   value="{{ p.birth_date.strftime('%Y-%m-%d') if p.birth_date else '' }}">
+            <input name="sex" value="{{ p.sex }}">
+            <input name="phone" value="{{ p.phone }}">
+
+            <button>Guardar cambios</button>
+
+        </form>
+
+        <br>
+        <a href="/patients">⬅ Volver</a>
+
+    </div>
+
+    <!-- DERECHA -->
+    <div class="derecha">
+        <img src="{{ url_for('static', filename='gif1.gif') }}">
+    </div>
+
+</div>
+
+{% endblock %}
