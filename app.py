@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, redirect
 import psycopg2
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
 
-DB_URL = "postgresql://postgres.sqbgizedptxsuznfewhi:MinsaMCC100@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+DB_URL = os.environ.get("DB_URL")
 
 def get_conn():
     return psycopg2.connect(DB_URL)
