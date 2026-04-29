@@ -260,7 +260,7 @@ def controls(grupo):
     }
 
     nombres_adulto_mayor = [
-        "Vista", "Vacuna", "Salud Mental",
+        "Visita", "Vacuna", "Salud Mental",
         "Nutrición", "Salud Ocular", "VACAM"
     ]
 
@@ -279,6 +279,7 @@ def controls(grupo):
         LEFT JOIN controls c
             ON p.id = c.patient_id AND c.year = %s
         WHERE EXTRACT(YEAR FROM AGE(p.birth_date)) BETWEEN %s AND %s
+        ORDER BY LOWER(p.last_name)
     """
 
     params = [year, edad_min, edad_max]
