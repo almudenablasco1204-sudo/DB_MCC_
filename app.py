@@ -411,19 +411,18 @@ def controls_ninos():
     elif rango == "5a11":
         condicion = "AGE(birth_date) >= INTERVAL '5 years' AND AGE(birth_date) < INTERVAL '12 years'"
 
-    query = f"""
+    query = """
         SELECT 
-            p.id, p.hc, p.dni,
-            p.last_name, p.mother_last_name, p.first_name,
-            p.birth_date,
+            p.id, p.hc, p.dni, p.last_name, p.mother_last_name,
+            p.first_name,
             EXTRACT(YEAR FROM AGE(p.birth_date)) as edad,
             c.control_type, c.done, c.date
         FROM patients p
         LEFT JOIN controls c
             ON p.id = c.patient_id AND c.year = %s
-        WHERE {condicion}
+        WHERE EXTRACT(YEAR FROM AGE(p.birth_date)) BETWEEN %s AND %s
+        ORDER BY LOWER(p.last_name)
     """
-
     params = [year]
 
     if tipo == "apellido":
