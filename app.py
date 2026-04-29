@@ -260,7 +260,7 @@ def controls(grupo):
     }
 
     nombres_adulto_mayor = [
-        "Vista", "Vacuna", "Salud Mental",
+        "Visita", "Vacuna", "Salud Mental",
         "Nutrición", "Salud Ocular", "VACAM"
     ]
 
