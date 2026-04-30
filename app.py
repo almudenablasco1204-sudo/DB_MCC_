@@ -24,7 +24,10 @@ def patients():
         SELECT id, hc, community, dni, last_name, mother_last_name,
                first_name, birth_date, sex, phone
         FROM patients
-        ORDER BY last_name
+        ORDER BY 
+            LOWER(TRIM(last_name)),
+            LOWER(TRIM(mother_last_name)),
+            LOWER(TRIM(first_name))
     """)
 
     rows = cur.fetchall()
@@ -46,7 +49,7 @@ def delete(id):
     cur.close()
     conn.close()
 
-    return redirect("/patients")
+    return redirect(request.referrer or "/patients")
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
@@ -85,7 +88,8 @@ def edit(id):
         cur.close()
         conn.close()
 
-        return redirect("/patients")
+        next_page = request.args.get("next")
+        return redirect(next_page or "/patients")
 
     # GET
     cur.execute("""
@@ -137,6 +141,15 @@ def register():
             conn = get_conn()
             cur = conn.cursor()
 
+            if dni:
+                cur.execute("SELECT id FROM patients WHERE dni=%s", (dni,))
+                if cur.fetchone():
+                    mensaje = "❌ Ya existe un paciente con ese DNI"
+                    cur.close()
+                    conn.close()
+                    return render_template("register.html", mensaje=mensaje)
+
+
             cur.execute("""
                 INSERT INTO patients
                 (hc, community, dni, last_name, mother_last_name,
@@ -163,7 +176,7 @@ def register():
 @app.route("/search", methods=["GET", "POST"])
 def search():
 
-    resultados = ""
+    pacientes = []
 
     if request.method == "POST":
 
@@ -197,52 +210,21 @@ def search():
             query += " WHERE EXTRACT(YEAR FROM birth_date) = %s"
             params = [int(valor)]
 
+        # 🔥 ORDEN CORRECTO (paterno + materno + nombre)
+        query += """
+        ORDER BY 
+            LOWER(TRIM(last_name)),
+            LOWER(TRIM(mother_last_name)),
+            LOWER(TRIM(first_name))
+        """
+
         cur.execute(query, params)
-        rows = cur.fetchall()
+        pacientes = cur.fetchall()
 
         cur.close()
         conn.close()
 
-        # 🔥 SOLO ESTA PARTE CAMBIA
-        tabla = """
-        <table border="1" style="margin:auto; border-collapse:collapse;">
-        <tr>
-            <th>HC</th>
-            <th>Comunidad</th>
-            <th>DNI</th>
-            <th>Apellido paterno</th>
-            <th>Apellido materno</th>
-            <th>Nombre</th>
-            <th>Nacimiento</th>
-            <th>Año</th>
-            <th>Sexo</th>
-            <th>Celular</th>
-        </tr>
-        """
-
-        for p in rows:
-            anio = p[7].year if p[7] else ""
-
-            tabla += f"""
-            <tr>
-                <td>{p[1]}</td>
-                <td>{p[2]}</td>
-                <td>{p[3]}</td>
-                <td>{p[4]}</td>
-                <td>{p[5]}</td>
-                <td>{p[6]}</td>
-                <td>{p[7] if p[7] else ''}</td>
-                <td>{anio}</td>
-                <td>{p[8]}</td>
-                <td>{p[9]}</td>
-            </tr>
-            """
-
-        tabla += "</table>"
-
-        resultados = tabla
-
-    return render_template("search.html", resultados=resultados)
+    return render_template("search.html", pacientes=pacientes)
 
 @app.route("/controls/<grupo>", methods=["GET", "POST"])
 def controls(grupo):
@@ -269,7 +251,13 @@ def controls(grupo):
 
     edad_min, edad_max, n_controles = grupos[grupo]
 
-    query = """
+    # 🔥 CLAVE: FILTRAR CONTROL_TYPE SEGÚN GRUPO
+    if grupo == "adultos_mayores":
+        filtro_controles = "AND (c.control_type BETWEEN 1 AND 6 OR c.control_type IS NULL)"
+    else:
+        filtro_controles = ""
+
+    query = f"""
         SELECT 
             p.id, p.hc, p.dni, p.last_name, p.mother_last_name,
             p.first_name,
@@ -277,13 +265,15 @@ def controls(grupo):
             c.control_type, c.done, c.date
         FROM patients p
         LEFT JOIN controls c
-            ON p.id = c.patient_id AND c.year = %s
+            ON p.id = c.patient_id 
+            AND c.year = %s
+            {filtro_controles}
         WHERE EXTRACT(YEAR FROM AGE(p.birth_date)) BETWEEN %s AND %s
-        ORDER BY LOWER(p.last_name)
     """
 
     params = [year, edad_min, edad_max]
 
+    # 🔍 filtros búsqueda
     if request.method == "POST":
         tipo = request.form.get("tipo")
         valor = request.form.get("valor", "")
@@ -295,6 +285,9 @@ def controls(grupo):
         elif tipo == "dni":
             query += " AND p.dni ILIKE %s"
             params.append(f"%{valor}%")
+
+    # 🔥 ORDEN DOBLE (paterno + materno)
+    query += " ORDER BY LOWER(p.last_name), LOWER(p.mother_last_name)"
 
     cur.execute(query, params)
     rows = cur.fetchall()
@@ -323,7 +316,7 @@ def controls(grupo):
                 pacientes[pid]["controles"][idx]["done"] = r[8]
                 pacientes[pid]["controles"][idx]["fecha"] = r[9] or ""
 
-    # 🔒 SOLO PARA GRUPOS SECUENCIALES
+    # 🔒 solo secuencial para otros grupos
     if grupo != "adultos_mayores":
         for p in pacientes.values():
             for i in range(len(p["controles"])):
@@ -332,14 +325,12 @@ def controls(grupo):
 
     pacientes = list(pacientes.values())
 
-    # 🔥 CONTADOR
     total = len(pacientes)
     completos = sum(
         1 for p in pacientes
         if all(c["done"] for c in p["controles"])
     )
 
-    # HEADERS
     if grupo == "adultos_mayores":
         headers = nombres_adulto_mayor
     else:
@@ -356,8 +347,6 @@ def controls(grupo):
         "ninos": "logo.jpeg"
     }
 
-
-
     return render_template(
         "controls.html",
         grupo=grupo,
@@ -367,8 +356,6 @@ def controls(grupo):
         completos=completos,
         imagen=imagenes.get(grupo, "logo.jpeg")
     )
-
-from datetime import datetime, timedelta
 
 @app.route("/controls/ninos", methods=["GET", "POST"])
 def controls_ninos():

@@ -26,7 +26,6 @@
     position: relative;
 }
 
-/* 🔥 IMAGEN ESQUINA SUPERIOR DERECHA */
 .img-top {
     position: absolute;
     top: 70px;
@@ -34,7 +33,6 @@
     width: 240px;
 }
 
-/* 🔥 BOTÓN VOLVER ESQUINA SUPERIOR IZQUIERDA */
 .volver-top {
     position: absolute;
     top: 10px;
@@ -109,43 +107,90 @@ th {
 
 <div class="contenedor">
 
-    <!-- IZQUIERDA -->
-    <div class="izquierda">
-        <img src="{{ url_for('static', filename='buscar.jpeg') }}">
-    </div>
+```
+<!-- IZQUIERDA -->
+<div class="izquierda">
+    <img src="{{ url_for('static', filename='buscar.jpeg') }}">
+</div>
 
-    <!-- DERECHA -->
-    <div class="derecha">
+<!-- DERECHA -->
+<div class="derecha">
 
-        <!-- 🔥 BOTÓN VOLVER ARRIBA -->
-        <a href="/" class="volver-top">⬅ Volver</a>
+    <!-- BOTÓN VOLVER -->
+    <a href="/" class="volver-top">⬅ Volver</a>
 
-        <!-- 🔥 IMAGEN ARRIBA DERECHA -->
-        <img class="img-top" src="{{ url_for('static', filename='buscar.png') }}">
+    <!-- IMAGEN ARRIBA -->
+    <img class="img-top" src="{{ url_for('static', filename='buscar.png') }}">
 
-        <h2>Buscar Paciente</h2>
+    <h2>Buscar Paciente</h2>
 
-        <form method="post">
+    <form method="post">
 
-            <label><input type="radio" name="tipo" value="apellido" required> Apellido</label>
-            <label><input type="radio" name="tipo" value="dni"> DNI</label>
-            <label><input type="radio" name="tipo" value="hc"> Historia clínica</label>
-            <label><input type="radio" name="tipo" value="anio"> Año nacimiento</label>
+        <label><input type="radio" name="tipo" value="apellido" required> Apellido</label>
+        <label><input type="radio" name="tipo" value="dni"> DNI</label>
+        <label><input type="radio" name="tipo" value="hc"> Historia clínica</label>
+        <label><input type="radio" name="tipo" value="anio"> Año nacimiento</label>
 
-            <input name="valor" placeholder="Buscar">
+        <input name="valor" placeholder="Buscar">
 
-            <br>
-            <button type="submit">Buscar</button>
+        <br>
+        <button type="submit">Buscar</button>
 
-        </form>
+    </form>
 
-        <hr>
+    <hr>
 
-        {% if resultados %}
-            {{ resultados|safe }}
-        {% endif %}
+    {% if pacientes %}
 
-    </div>
+    <table>
+        <tr>
+            <th>HC</th>
+            <th>Comunidad</th>
+            <th>DNI</th>
+            <th>Apellido paterno</th>
+            <th>Apellido materno</th>
+            <th>Nombre</th>
+            <th>Nacimiento</th>
+            <th>Año</th>
+            <th>Sexo</th>
+            <th>Celular</th>
+            <th>Acciones</th>
+        </tr>
+
+        {% for p in pacientes %}
+        <tr>
+            <td>{{ p[1] }}</td>
+            <td>{{ p[2] }}</td>
+            <td>{{ p[3] }}</td>
+            <td>{{ p[4] }}</td>
+            <td>{{ p[5] }}</td>
+            <td>{{ p[6] }}</td>
+            <td>{{ p[7] if p[7] else "" }}</td>
+            <td>{{ p[7].year if p[7] else "" }}</td>
+            <td>{{ p[8] }}</td>
+            <td>{{ p[9] }}</td>
+
+            <td>
+                <!-- EDITAR -->
+                <a href="/edit/{{ p[0] }}?next={{ request.path }}">
+                    <button type="button">✏️</button>
+                </a>
+
+                <!-- ELIMINAR -->
+                <form action="/delete/{{ p[0] }}" method="POST" style="display:inline;">
+                    <button onclick="return confirm('¿Eliminar paciente?')">🗑️</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% elif request.method == "POST" %}
+    <p>No se encontraron resultados</p>
+    {% endif %}
+
+</div>
+```
 
 </div>
 
