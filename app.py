@@ -24,10 +24,7 @@ def patients():
         SELECT id, hc, community, dni, last_name, mother_last_name,
                first_name, birth_date, sex, phone
         FROM patients
-        ORDER BY 
-            LOWER(TRIM(last_name)),
-            LOWER(TRIM(mother_last_name)),
-            LOWER(TRIM(first_name))
+        ORDER BY last_name
     """)
 
     rows = cur.fetchall()
@@ -140,15 +137,6 @@ def register():
         try:
             conn = get_conn()
             cur = conn.cursor()
-
-            if dni:
-                cur.execute("SELECT id FROM patients WHERE dni=%s", (dni,))
-                if cur.fetchone():
-                    mensaje = "❌ Ya existe un paciente con ese DNI"
-                    cur.close()
-                    conn.close()
-                    return render_template("register.html", mensaje=mensaje)
-
 
             cur.execute("""
                 INSERT INTO patients
@@ -269,7 +257,6 @@ def controls(grupo):
             AND c.year = %s
             {filtro_controles}
         WHERE EXTRACT(YEAR FROM AGE(p.birth_date)) BETWEEN %s AND %s
-        ORDER BY LOWER(p.last_name)
     """
 
     params = [year, edad_min, edad_max]
@@ -380,13 +367,16 @@ def controls_ninos():
     if not rango:
         return render_template(
             "controls_ninos.html",
-            pacientes=[],
-            headers=[],
+            pacientes=pacientes if rango else [],
+            headers=controles[rango] if rango else [],
             rango=rango,
-            total=0,
-            completos=0
+            total=total if rango else 0,
+            completos=completos if rango else 0
         )
 
+    # ======================
+    # CONDICIÓN EDAD
+    # ======================
     if rango == "menor1":
         condicion = "AGE(birth_date) < INTERVAL '1 year'"
     elif rango == "1anio":
@@ -425,6 +415,9 @@ def controls_ninos():
     pacientes = {}
     n = len(controles[rango])
 
+    # ======================
+    # FUNCIÓN FECHA OBJETIVO
+    # ======================
     def calcular_fecha_objetivo(birth_date, tipo_control):
         if rango == "menor1":
             dias = [7,14,21,30,60,90,120,180,210,270]
@@ -445,6 +438,7 @@ def controls_ninos():
 
         return None
 
+    # AGRUPAR
     for r in rows:
         pid = r[0]
         birth = r[6]
@@ -455,7 +449,6 @@ def controls_ninos():
                 "id": pid,
                 "hc": r[1],
                 "dni": r[2],
-                "apellido_paterno": r[3],  # 👈 IMPORTANTE
                 "nombre": f"{r[3]} {r[4]} {r[5]}",
                 "edad": edad_actual,
                 "controles": [
@@ -464,21 +457,25 @@ def controls_ninos():
                 ]
             }
 
+            # calcular fechas objetivo
             for i in range(n):
                 fecha_obj = calcular_fecha_objetivo(birth, i)
                 if fecha_obj:
                     pacientes[pid]["controles"][i]["esperada"] = fecha_obj.strftime("%Y-%m-%d")
 
+        # cargar datos reales
         if r[8] is not None:
-            idx = r[8] - 1
-            if 0 <= idx < n:
-                pacientes[pid]["controles"][idx]["done"] = r[9]
-                pacientes[pid]["controles"][idx]["fecha"] = r[10] or ""
+            if rango == "5a11":
+                if r[8] == 1:
+                    pacientes[pid]["controles"][0]["done"] = r[9]
+                    pacientes[pid]["controles"][0]["fecha"] = r[10] or ""
+            else:
+                idx = r[8] - 1
+                if 0 <= idx < n:
+                    pacientes[pid]["controles"][idx]["done"] = r[9]
+                    pacientes[pid]["controles"][idx]["fecha"] = r[10] or ""
 
     pacientes = list(pacientes.values())
-
-    # 🔥 ORDEN ALFABÉTICO POR APELLIDO PATERNO
-    pacientes.sort(key=lambda p: p["apellido_paterno"].lower())
 
     total = len(pacientes)
     completos = sum(
@@ -497,6 +494,7 @@ def controls_ninos():
         total=total,
         completos=completos
     )
+
 @app.route("/controls/cancer", methods=["GET", "POST"])
 def controls_cancer():
 
@@ -507,7 +505,7 @@ def controls_cancer():
 
     tipo = request.form.get("tipo")
     valor = request.form.get("valor", "")
-    modo = request.form.get("modo")
+    modo = request.form.get("modo")  # 👈 nuevo selector
 
     cancer_rules = {
         "mama": ("MAMA", "F", 40, 69),
@@ -516,6 +514,7 @@ def controls_cancer():
         "piel": ("PIEL", "ALL", 18, 70)
     }
 
+    # SI NO SE HA ELEGIDO MODO
     if not modo:
         return render_template("controls_cancer.html", modo=None)
 
@@ -562,7 +561,6 @@ def controls_cancer():
                 "id": pid,
                 "hc": r[1],
                 "dni": r[2],
-                "apellido_paterno": r[3],  # 👈 IMPORTANTE
                 "nombre": f"{r[3]} {r[4]} {r[5]}",
                 "edad": r[7],
                 "controles": {
@@ -580,9 +578,6 @@ def controls_cancer():
 
     pacientes = list(pacientes.values())
 
-    # 🔥 ORDEN ALFABÉTICO
-    pacientes.sort(key=lambda p: p["apellido_paterno"].lower())
-
     total = len(pacientes)
     completos = sum(1 for p in pacientes if p["controles"][nombre]["done"])
 
@@ -597,6 +592,7 @@ def controls_cancer():
         total=total,
         completos=completos
     )
+
 @app.route("/toggle/<int:patient_id>/<int:control_type>")
 def toggle(patient_id, control_type):
 
